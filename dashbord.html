@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <header></header>
+    <container>
+        <div class="container">
+            <div class="row">
+              <div class="col-sm">
+                <div class="card" style="width: 18rem;">
+                   <svg></svg>
+                    <div class="card-body">
+                      <h5 class="card-title">Card title</h5>
+                      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                      <a href="#" class="btn btn-primary">Go somewhere</a>
+                    </div>
+                  </div>
+              </div>
+              <div class="col-sm">
+                One of three columns
+              </div>
+              <div class="col-sm">
+                One of three columns
+              </div>
+            </div>
+          </div>
+    </container>
+    <footer></footer>
+
+    
+  <script>
+    // Set dimensions and margins
+    const width = 200;
+    const height = 200;
+    const margin = { top: 20, right: 30, bottom: 40, left: 50 };
+
+    // Append SVG to the container
+    const svg = d3
+    //   .select("#chart")
+      .select("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Initial data
+    let data = Array.from({ length: 20 }, (_, i) => ({
+      x: i + 1,
+      y: Math.floor(Math.random() * 100),
+    }));
+
+    // Scales for x and y axes
+    const xScale = d3
+      .scaleLinear()
+      .domain([0, d3.max(data, (d) => d.x)])
+      .range([0, width - margin.left - margin.right]);
+
+    const yScale = d3
+      .scaleLinear()
+      .domain([0, 100]) // Fixed domain for consistent updates
+      .range([height - margin.top - margin.bottom, 0]);
+
+    // Line generator
+    const line = d3
+      .line()
+      .x((d) => xScale(d.x))
+      .y((d) => yScale(d.y))
+      .curve(d3.curveMonotoneX); // Smooth curve
+
+    // Append the line path
+    const path = svg
+      .append("path")
+      .datum(data)
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", 2)
+      .attr("d", line);
+
+    // Add x-axis
+    const xAxis = svg
+      .append("g")
+      .attr("transform", `translate(0,${height - margin.top - margin.bottom})`)
+      .call(d3.axisBottom(xScale).ticks(10));
+
+    // Add y-axis
+    const yAxis = svg.append("g").call(d3.axisLeft(yScale));
+
+    // Add points to the chart
+    let points = svg
+      .selectAll(".point")
+      .data(data)
+      .enter()
+      .append("circle")
+      .attr("class", "point")
+      .attr("cx", (d) => xScale(d.x))
+      .attr("cy", (d) => yScale(d.y))
+      .attr("r", 4)
+      .attr("fill", "orange");
+
+    // Tooltip setup
+    const tooltip = d3.select(".tooltip");
+
+    // Add interactivity
+    points
+      .on("mouseover", (event, d) => {
+        tooltip
+          .style("display", "block")
+          .html(`x: ${d.x}<br>y: ${d.y}`)
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY - 20}px`);
+      })
+      .on("mousemove", (event) => {
+        tooltip
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY - 20}px`);
+      })
+      .on("mouseout", () => {
+        tooltip.style("display", "none");
+      });
+
+
+      // table from csv
+      d3.csv("http://localhost:8000/ratios.csv").then(function(data) {
+
+    let table = d3.select("body").append("table");
+    let thead = table.append("thead");
+    let tbody = table.append("tbody");
+
+    // Append headers
+    thead.append("tr")
+        .selectAll("th")
+        .data(Object.keys(data[0]))
+        .enter().append("th")
+        .text(d => d);
+
+    // Append rows
+    let rows = tbody.selectAll("tr")
+        .data(data)
+        .enter().append("tr");
+
+    // Append cells
+    rows.selectAll("td")
+        .data(d => Object.values(d))
+        .enter().append("td")
+        .text(d => d);
+});
+
+      </script>
+</body>
+</html>
