@@ -6,35 +6,149 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <title>Document</title>
+    <style>
+      .box {
+          width: 100px;
+          height: 50px;
+          /* background-color: lightblue; */
+          margin: 20px; /* Adds space outside the element */
+          padding: 10px; /* Adds space inside the element */
+      }
+  </style>
 </head>
 <body>
-    <header></header>
+    <header>
+      <nav class="navbar navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Tata Motors Stock Analysis</a>
+      </nav>
+    </header>
     <container>
         <div class="container">
+          <div class="box"></div>
+          <p class="test"></p>
+          <svg class="trendChart">
+
+          </svg>
+          <div class="box"></div>
             <div class="row">
               <div class="col-sm">
                 <div class="card" style="width: 18rem;">
-                   <svg></svg>
+                   <svg class="lineChart"></svg>
                     <div class="card-body">
                       <h5 class="card-title">Card title</h5>
-                      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                      <a href="#" class="btn btn-primary">Go somewhere</a>
+                      <!-- <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                      <a href="#" class="btn btn-primary">Go somewhere</a> -->
                     </div>
                   </div>
               </div>
               <div class="col-sm">
-                One of three columns
+                <div class="card" style="width: 18rem;">
+                  <svg class="barChart"></svg>
+                   <div class="card-body">
+                     <h5 class="card-title">Card title</h5>
+                     <!-- <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                     <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                   </div>
+                 </div>
               </div>
               <div class="col-sm">
-                One of three columns
+                <div class="card" style="width: 18rem;">
+                  <svg class="scatterChart"></svg>
+                   <div class="card-body">
+                     <h5 class="card-title">Card title</h5>
+                     <!-- <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                     <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                   </div>
+                 </div>
               </div>
             </div>
+            <div class="box"></div>
+            <div class="table"></div>
           </div>
     </container>
     <footer></footer>
 
     
   <script>
+ 
+  
+    // Trend Chart
+    const trendheight = 200;
+    const trendwidth = 900;
+    const trendmargin = { top: 20, right: 30, bottom: 40, left: 50 };
+
+    // Append SVG to the container
+    const trendsvg = d3
+    //   .select("#chart")
+      .select(".trendChart")
+      .attr("width", trendwidth)
+      .attr("height", trendheight)
+      .append("g")
+      .attr("transform", `translate(${trendmargin.left},${trendmargin.top})`);
+
+    // Initial data
+    let trenddata = Array.from({ length: 20 }, (_, i) => ({
+      x: i + 1,
+      y: Math.floor(Math.random() * 100),
+    }));
+
+    // Scales for x and y axes
+    const trendxScale = d3
+      .scaleLinear()
+      .domain([100,200])
+      .range([0, trendwidth - trendmargin.left - trendmargin.right]);
+
+      const timeScale = d3.scaleTime()
+    .domain([new Date(2010, 1, 1), new Date(2023, 12, 31)]) // Domain: Jan 1, 2020 to Jan 1, 2021
+    .range([0, width]);
+
+    const trendyScale = d3
+      .scaleLinear()
+      .domain([100, 200]) // Fixed domain for consistent updates
+      .range([trendheight - trendmargin.top - trendmargin.bottom, 0]);
+
+    // Line generator
+    const trendline = d3
+      .line()
+      .x((d) => timeScale(d.Date))
+      .y((d) => trendyScale(d.Close))
+      .curve(d3.curveMonotoneX); // Smooth curve
+
+    // Append the line path
+
+  //   d3.csv("http://127.0.0.1:8000/data.csv").then(function(data) {
+  //           // Iterate through the data
+  //           data.forEach(function(row) {
+  //             trendsvg
+  //     .append("path")
+  //     .datum(data)
+  //     .attr("fill", "none")
+  //     .attr("stroke", "steelblue")
+  //     .attr("stroke-width", 2)
+  //     .attr("d", trendline);
+  //           })
+  // });
+    
+    const trendpath = trendsvg
+      .append("path")
+      .datum(trenddata)
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", 2)
+      .attr("d", trendline);
+
+    // Add x-axis
+    const trendxAxis = trendsvg
+      .append("g")
+      .attr("transform", `translate(0,${trendheight - trendmargin.top - trendmargin.bottom})`)
+      .call(d3.axisBottom(trendxScale).ticks(10));
+
+    // Add y-axis
+    const trendyAxis = trendsvg.append("g").call(d3.axisLeft(trendyScale));
+
+
+
+
     // Set dimensions and margins
     const width = 200;
     const height = 200;
@@ -43,7 +157,7 @@
     // Append SVG to the container
     const svg = d3
     //   .select("#chart")
-      .select("svg")
+      .select(".lineChart")
       .attr("width", width)
       .attr("height", height)
       .append("g")
@@ -124,11 +238,18 @@
         tooltip.style("display", "none");
       });
 
+      const parseDate = d3.timeParse('%Y-%m-%d');
+      const formatDate = d3.timeFormat('%Y-%m-%d');
 
       // table from csv
-      d3.csv("http://localhost:8000/ratios.csv").then(function(data) {
+      
+      d3.csv("http://127.0.0.1:8000/data.csv").then(function(data) {
 
-    let table = d3.select("body").append("table");
+    let table = d3.select(".table").append("table");
+    const tablemargin = { top: 20, right: 30, bottom: 40, left: 50 };
+    table.attr("width",800)
+    // .append("g").attr("transform",`translate(${tablemargin.left},${tablemargin.top})`)
+    ;
     let thead = table.append("thead");
     let tbody = table.append("tbody");
 
@@ -148,8 +269,146 @@
     rows.selectAll("td")
         .data(d => Object.values(d))
         .enter().append("td")
-        .text(d => d);
-});
+        .text(d => {
+        // If the value is a date, format it
+        if (parseDate(d)) {
+            return formatDate(parseDate(d));  // Format the date
+        }
+        // Otherwise, just return the value (apply Math.floor for numbers, or just display text)
+        else  {
+            return Math.floor(d);
+        }
+        return d;
+      })
+
+    });
+
+
+
+    // Bar chart 
+
+    const bardata = [
+            { category:"A", value :30},
+            { category:"B", value :80},
+            { category:"c", value :45},
+            { category:"D", value :60},
+            { category:"E", value :20},
+            { category:"F", value :50}
+
+        ];
+
+        // set dimensions
+        
+        const barwidth = 250;
+        const barheight = 200;
+        const barmargin = { top : 20,right:20,bottom:40,left:40};
+
+        // select SVG and set attributes
+        const barsvg = d3.select(".barChart")
+            .attr("width",barwidth)
+            .attr("height",barheight);
+
+        // Create X scale ( categorical)
+
+        const barxScale = d3.scaleBand()
+            .domain(bardata.map(d=>d.category)) // map category
+            .range([barmargin.left,barwidth-barmargin.right])
+            .padding(0.2); // space between bars
+
+        const baryScale = d3.scaleLinear()
+            .domain([0,d3.max(bardata,(d)=>d.value)])
+            .range([barheight - barmargin.bottom,barmargin.top])
+
+            // tooltip
+            const bartooltip=d3.select(".tooltip")
+
+        //  drow bars
+        barsvg.selectAll(".bar")
+            .data(bardata)
+            .enter().append("rect")
+            .attr("class","bar")
+            .attr("x",d =>barxScale(d.category))
+            .attr("y",d=>baryScale(d.value))
+            .attr("width",barxScale.bandwidth())
+            .attr("height",d=>barheight-barmargin.bottom -baryScale(d.value))
+            .on("mouseover",function(event,d){
+                d3.select(this).attr("fill","red")
+                bartooltip.style("visibility","visible")
+                .text(`value:${d.value}`)
+                .style("left",(event.pageX+10)+"px")
+                .style("top",(event.pageY)-10+"px")
+            })
+            .on("mousemove",function(event){
+                bartooltip.style("left",(event.pageX+10)+"px")
+                .style("top",(event.pageY)-10+"px")
+            })
+            .on("mouseout",function(event){
+                bartooltip.style("visibility","hidden")
+                bartooltip.style(this).attr("fill","steelblue");
+              
+            });
+
+        barsvg.append("g")
+            .attr("transform",`translate(${barmargin.left},0)`)
+            .call(d3.axisLeft(baryScale))
+            .attr("class","axis-label");
+
+        barsvg.append("g")
+            .attr("transform",`translate(${barmargin.left},${barheight-barmargin.bottom})`)
+            .call(d3.axisBottom(barxScale))
+            .attr("class","axis-label")
+
+
+            // Scatter Plot
+
+            const scatterwidth = 250, scatterheight = 300;
+        const scattermargin = { top: 20, right: 20, bottom: 20, left: 30 };
+        const scattersvg = d3.select(".scatterChart");
+
+        // ✅ Sample data: (x, y, size, category)
+        const scatterdata = [
+            { x: 30, y: 30, size: 15, category: "A" },
+            { x: 40, y: 40, size: 20, category: "B" },
+            { x: 20, y: 10, size: 10, category: "C" },
+           
+        ];
+
+        // ✅ Scales
+        const scatterxScale = d3.scaleLinear().domain([0, 50]).range([scattermargin.left, scatterwidth - scattermargin.right]);
+        const scatteryScale = d3.scaleLinear().domain([0, 50]).range([scatterheight - scattermargin.bottom, scattermargin.top]);
+        // const sizeScale = d3.scaleLinear().domain([5, 10]).range([2, 8]); // Scale for circle size
+        // const colorScale = d3.scaleOrdinal().domain(["A", "B", "C"]).range(["red", "blue", "green"]); // Color by category
+
+        // ✅ Axes
+        const scatterxAxis = d3.axisBottom(scatterxScale);
+        const scatteryAxis = d3.axisLeft(scatteryScale);
+
+        scattersvg.append("g")
+            .attr("transform", `translate(0, ${scatterheight - scattermargin.bottom})`)
+            .call(scatterxAxis);
+
+        scattersvg.append("g")
+            .attr("transform", `translate(${scattermargin.left}, 0)`)
+            .call(scatteryAxis);
+
+        // ✅ Scatter plot points
+        scattersvg.selectAll("circle")
+            .data(scatterdata)
+            .enter().append("circle")
+            .attr("cx", d => scatterxScale(d.x))
+            .attr("cy", d => scatteryScale(d.y))
+            .attr("r", 4)
+            .attr("fill", "blue")
+            .attr("class", "dot");
+
+        // ✅ Add Labels
+        scattersvg.selectAll("text.label")
+            .data(scatterdata)
+            .enter().append("text")
+            .attr("x", d => scatterxScale(d.x) + 5)
+            .attr("y", d => scatteryScale(d.y) - 5)
+            .attr("font-size", "12px")
+            .text(d => d.category);
 
       </script>
 </body>
